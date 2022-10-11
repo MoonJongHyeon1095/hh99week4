@@ -1,0 +1,47 @@
+const jwt = require('jsonwebtoken')
+const {Users} = require("../models")
+// models/index.js 파일이 데이터베이스 연결 설정과 함께 Sequelize 모델 파일을 불러와서 
+// 다시 내보내주기 때문에 위의 코드처럼 사용자 모델을 사용해야 합니다.
+// 라는 건 index.js 를 볼 줄 모르는데 어떻게 알아요...ㅜ
+
+
+//module.exports 에서 exports 에 s 안붙여서 개고생.
+module.exports =(req,res,next)=>{
+    console.log('여기를 지나쳤어요. 여기는 토큰검증모듈 혹은 미들웨어랍니다.')
+    
+    const {authorization} = req.headers; //프론트에서 아무리 대문자로 보내도 여기서는 소문자로 받는대.
+    console.log(authorization) // Bearer fewwgdsgdvcvzggwf겁나긴토큰문자열 
+
+    const [tokenType, tokenValue] = (authorization || "").split(' ') //배열 구조분해할당!
+    console.log(tokenType) // Bearer
+    console.log(tokenValue) // fewwgdsgdvcvzggwf겁나긴토큰문자열
+    
+    if (!tokenValue || tokenType !== 'Bearer'){
+        res.status(401).send({errorMessage: '로그인 후 사용하세요.'});
+        return;
+    }
+
+    try{
+        const {userId} = jwt.verify(tokenValue, 'LukeSkywalker');
+        //로그인 api에서 토큰을 이렇게 만들었었다.
+        //const token = jwt.sign({userId: user.userId}, 'LukeSkywalker')
+
+        Users.findByPk(userId)
+            //.exec() 
+            .then((user)=>{
+            res.locals.user = user;//express에서 주는 다용도실. 이거 하면 다른 곳에서 엄청 편해진다.
+        
+            next(); 
+            // next가 반드시 호출되어야 한다. 그렇지 않으면 요 레벨에서 예외처리에 걸려서 그 뒤 미들웨어 까지 연결이 안된다.     
+            // try문 내부의 이 프로미스가 fulfilled된 경우만 next 호출되는 것으로 변경. 
+            // 이 next는... 어디로 가는걸까?
+            });
+        
+    }catch(err){
+        res.status(401).send({
+            errorMessage: '로그인 후 사용하세요.'
+        });
+        return; // 꼭 에러처리 후 리턴! 안그러면 넥스트로 가버려서 다음 미들웨어로 에러 떨어짐!
+    }
+    
+};
