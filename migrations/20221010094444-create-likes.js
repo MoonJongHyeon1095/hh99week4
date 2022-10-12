@@ -39,15 +39,10 @@ module.exports = {
         type: Sequelize.DataTypes.STRING,
         allowNull: false,
       },
-      likes: {
-        type: Sequelize.DataTypes.INTEGER,
-        allowNull:false,
-        defaultValue: 0,
-      },
       isLike: {
         allowNull: false,
         type: Sequelize.BOOLEAN,
-        defaultValue: false
+        defaultValue: true
       },
       createdAt: {
         allowNull: false,
@@ -67,5 +62,7 @@ module.exports = {
    * **/
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable('Likes');
+    //await queryInterface.removeColumn('Likes', 'likes')
+    
   }
 };

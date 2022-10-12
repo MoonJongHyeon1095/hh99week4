@@ -13,7 +13,7 @@ router.get("/",authMiddleware, async (req, res) => {
         const likeList = await Likes.findAll({
           where: {userId : user.userId}, 
           order: [['likes', 'DESC']],
-          attributes: {exclude: ["createdAt", "updatedAt", "likes"]}, 
+          attributes: {exclude: ["createdAt", "updatedAt"]}, 
           //attribute[]로 하나하나 배열 안에 열거해도 된다. attribute 안에서 exclude로 일종의 부정신학을 해도 된다.
           //like field의 likes는 특정 유저와 특정 포스트의 좋아요가 눌릴때에만 업데이트 된다. 
           //likes 카운트 자체는 아래에서 Posts 테이블에서 매번 꺼내오므로 최신이 맞지만, 
@@ -50,12 +50,27 @@ router.get("/",authMiddleware, async (req, res) => {
     }
   });
 
-//좋아요 등록 및 취소
+/**좋아요 등록 및 취소
+ * 처음에는 Likes테이블에 기록된 좋아요 여부(isLike)와 클라이언트로부터 들어온 현재 좋아요 (currentLike)를 생각하여,
+ * 각각 1.true true 일 떄 변화 없음. / 2.true false일 때 -1. / 3.false true일 때 +1. / 4.false false일 때 변화없음.
+ * 이라고 했던 거다.
+ * 그런데 그런거를 서버에서 생각할 이유가 사실... 없잖아. 2번과 3번의 경우만 그냥 들어온다고 생각하면 된다. 1번과 4번은 아예 안들어오는 거다.
+ * 사정이 그러니, 걍 isLike만 조건문을 돌린다. !isLike 조건이 내가 고민한 false->true 의 변화를 표현해낸다.
+ * 걍 이 put method 가 호출되는 것만으로, isLike가 false 혹은 null이면 조건문에서 true로 변하여 좋아요를 누른다.
+ * isLike가 true면 조건문에서 false로 변하여 좋아요를 취소하고 테이블을 날려버린다.
+ * 
+ * 이 얼마나 지혜로운가....(자뻑아님. 내가 짠 코드가 아니라 동료의 코드다.)
+ * 코드로 정동情動을 포착하려면 경우의 수를 따질 수밖에 없다고 생각한 나는 바보였다.
+ * 
+ * 그리고 이 불안정하기 짝이 없는 Likes table은 그때 그때 만들거나 없애버린다.
+ * 
+ * 
+*/
 router.put("/:postId", authMiddleware, async (req, res) => {
+  
+  try{
   const {postId} = req.params;
-  const {user} = res.locals;
-  console.log(user);
-  const currentLike = req.body["like"];    
+  const {user} = res.locals;  
 
   const isExist = await Posts.findByPk(postId);
   if (!isExist) {
@@ -63,12 +78,32 @@ router.put("/:postId", authMiddleware, async (req, res) => {
   return;
   }
 
- try { 
+  const isLike = await Likes.findOne({
+    where: { postId, userId: user.userId },
+  });
 
+  if (!isLike) {
+    await Likes.create({ postId, userId: user.userId, nickname:user.nickname, title:isExist.title, isLike:true });
+    await Posts.increment({ likes: 1 }, { where: { postId } });
+    return res.status(201).send({ msg: "좋아요 하셨습니다." });
+  } else {
+    await Likes.destroy({ where: { postId, userId: user.userId } });
+    await Posts.decrement({ likes: 1 }, { where: { postId } });
+    return res.status(200).send({ msg: "좋아요를 취소하였습니다." });
+  }
+} catch (err) {
+  console.error(err);
+  res.status(500).json({ errorMessage: err.message });
+}
+});
+
+/** 
+ * 6가지 경우의 수를 다루며 Likes 테이블을 업데이트 하고자 했던 장구하고 미련한 계획의 흔적.
+ * 
+ * 
+ try { 
     //Posts 테이블 지금 게시글의 좋아요 숫자
     let likeCount = isExist.likes;
-
-  
 
     //해당 로그인 유저에 대한 like table이 없다면?
     const likeExist = await Likes.findOne({
@@ -119,5 +154,6 @@ router.put("/:postId", authMiddleware, async (req, res) => {
     res.status(400).json({ message });
   }
 });
+*/
 
 module.exports = router;

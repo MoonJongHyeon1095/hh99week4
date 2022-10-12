@@ -54,15 +54,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
-    likes: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: 0,
-    },
     isLike: {
       type: DataTypes.BOOLEAN,
       allowNull: false,
-      defaultValue: false,
+      defaultValue: true,
     },
     createdAt: {
       allowNull: false,
