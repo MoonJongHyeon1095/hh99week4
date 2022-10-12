@@ -68,8 +68,7 @@ router.put("/:postId", authMiddleware, async (req, res) => {
     //Posts 테이블 지금 게시글의 좋아요 숫자
     let likeCount = isExist.likes;
 
-    //임시 증감변수
-    let modifyLike = 0; 
+  
 
     //해당 로그인 유저에 대한 like table이 없다면?
     const likeExist = await Likes.findOne({
@@ -116,7 +115,7 @@ router.put("/:postId", authMiddleware, async (req, res) => {
             
   } catch (error) {
     const message = `${req.method} ${req.originalUrl} : ${error.message}`;
-    console.log(message);
+    logger.info(message);
     res.status(400).json({ message });
   }
 });
