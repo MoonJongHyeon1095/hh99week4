@@ -3,7 +3,7 @@
 const winston = require('winston');
 require('winston-daily-rotate-file');
 require('date-utils');
-const logDir = '../logs';
+const logDir =`${__dirname}/logs`    //'../logs';<--이거 바탕화면에 깔아짐...
 
 
 const levels = {
