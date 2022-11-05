@@ -1,9 +1,21 @@
 const express = require("express");
 const authMiddleware = require("../middlewares/auth-middleware");
-const { Users } = require("../models");
-const { Posts } = require("../models");
+//const { Users } = require("../models");
+//const { Posts } = require("../models");
 const router = express.Router();
 
+const PostsController = require('../controllers/posts.controllers');
+const postsController = new PostsController();
+
+router.get('/', postsController.getPosts);
+router.get('/:postId', postsController.getPostById);
+router.post('/',authMiddleware, postsController.createPost);
+router.put('/:postId',authMiddleware, postsController.updatePost);
+router.delete('/:postId',authMiddleware, postsController.deletePost);
+
+/***
+ * 3계층 아키텍쳐 패턴 적용. 기능 이전.
+ *  
 //게시글목록조회 : 토큰필요 없음.
 router.get("/", async (req, res) => {
   try {
@@ -31,8 +43,12 @@ router.get("/", async (req, res) => {
     res.status(400).json({ message });
   }
 });
+*/
 
-
+/**
+ *3계층 아키텍쳐 패턴 적용. 기능 이전.
+ *  
+ 
 //게시글 상세 조회 : 토큰필요 없음.
 router.get("/:postId", async (req, res) => {
   try {
@@ -72,7 +88,9 @@ router.get("/:postId", async (req, res) => {
     res.status(400).json({ message });
   }
 });
+*/
 
+/** 
 //개시글 생성 : 토큰 필요
 router.post("/", authMiddleware, async (req, res) => {
   try {
@@ -97,8 +115,12 @@ router.post("/", authMiddleware, async (req, res) => {
     res.status(400).json({ message });
   }
 });
+*/
 
 
+/**
+ * 
+ *
 //게시글 수정
 router.put("/:postId", authMiddleware, async (req, res) => {
     const postId = req.params.postId;
@@ -157,5 +179,6 @@ router.delete("/:postId",authMiddleware, async (req, res) => {
     res.status(400).json({ message });
   }
 });
+*/
 
 module.exports = router;

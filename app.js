@@ -97,6 +97,9 @@ routes.post("/signup", async(req,res)=>{
     return;
   }
 
+ //passport <---편해진다고 합니다. //소셜로그인 때 만지게 됩니다. 
+ //bcrypt //crypto.js //개발자도 못보도록 암호화, hashed_password 
+ //로그인 때도 오리지널 비번 그렇게 암호화 후 DB 와 비교 하는 작업 로그인API 에 추가 요망
   await Users.create({ nickname, password });
   res.status(201).send({message : '회원가입이 되었다.'});
 
